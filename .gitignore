@@ -17,7 +17,7 @@ coverage
 Thumbs.db
 
 # Local agent/editor tooling
-.agents
+# Skills are versioned on purpose: .agents/skills + skills-lock.json
+# .claude and .windsurf only hold junctions pointing at .agents/skills, so they stay ignored
 .claude
 .windsurf
-skills-lock.json
