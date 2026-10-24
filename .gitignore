@@ -1,0 +1,23 @@
+node_modules
+dist
+coverage
+*.tsbuildinfo
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Prisma generated client
+/src/generated
+
+# Logs and OS noise
+*.log
+.DS_Store
+Thumbs.db
+
+# Local agent/editor tooling
+.agents
+.claude
+.windsurf
+skills-lock.json
