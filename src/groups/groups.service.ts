@@ -3,6 +3,7 @@ import { Role } from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import type { CreateDisciplineDto } from './dto/create-discipline.dto.js';
 import type { CreateGroupDto } from './dto/create-group.dto.js';
+import type { UpdateGroupDto } from './dto/update-group.dto.js';
 
 const groupInclude = { discipline: true, teachers: { include: { user: { select: { id: true, name: true, email: true, role: true } } } }, students: { include: { student: true } } } as const;
 
@@ -22,7 +23,17 @@ export class GroupsService {
   async createGroup(dto: CreateGroupDto) {
     const discipline = await this.prisma.discipline.findUnique({ where: { id: dto.disciplineId } });
     if (!discipline) throw new NotFoundException('Discipline not found');
+    await this.ensureScheduleAvailable(dto, discipline.id);
     try { return await this.prisma.group.create({ data: { ...dto, name: dto.name.trim(), location: dto.location?.trim() }, include: groupInclude }); }
+    catch { throw new ConflictException('Group already exists for this discipline'); }
+  }
+
+  async updateGroup(id: string, dto: UpdateGroupDto) {
+    const group = await this.ensureGroup(id);
+    const discipline = await this.prisma.discipline.findUnique({ where: { id: dto.disciplineId } });
+    if (!discipline) throw new NotFoundException('Discipline not found');
+    await this.ensureScheduleAvailable(dto, discipline.id, id);
+    try { return await this.prisma.group.update({ where: { id: group.id }, data: { ...dto, name: dto.name.trim(), location: dto.location?.trim() }, include: groupInclude }); }
     catch { throw new ConflictException('Group already exists for this discipline'); }
   }
 
@@ -44,5 +55,12 @@ export class GroupsService {
     const group = await this.prisma.group.findUnique({ where: { id } });
     if (!group) throw new NotFoundException('Group not found');
     return group;
+  }
+
+  private async ensureScheduleAvailable(dto: CreateGroupDto, disciplineId: string, excludedId?: string) {
+    if (dto.dayOfWeek === undefined || !dto.startTime || !dto.endTime) return;
+    if (dto.startTime >= dto.endTime) throw new ConflictException('End time must be after start time');
+    const conflict = await this.prisma.group.findFirst({ where: { disciplineId, dayOfWeek: dto.dayOfWeek, id: excludedId ? { not: excludedId } : undefined, startTime: { lt: dto.endTime }, endTime: { gt: dto.startTime }, active: true } });
+    if (conflict) throw new ConflictException('Another group has a conflicting schedule');
   }
 }
