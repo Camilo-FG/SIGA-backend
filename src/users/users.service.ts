@@ -3,6 +3,7 @@ import * as bcrypt from 'bcrypt';
 import type { User } from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
+import { Role } from '../generated/prisma/client.js';
 
 export const BCRYPT_ROUNDS = 10;
 
@@ -43,5 +44,9 @@ export class UsersService {
     });
 
     return UsersService.toPublic(user);
+  }
+
+  listInternal(role?: Role): Promise<PublicUser[]> {
+    return this.prisma.user.findMany({ where: role ? { role } : undefined, orderBy: { name: 'asc' }, select: { id: true, email: true, name: true, role: true, createdAt: true, updatedAt: true } });
   }
 }
