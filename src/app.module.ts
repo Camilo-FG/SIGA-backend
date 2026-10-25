@@ -11,7 +11,7 @@ import { RolesGuard } from './auth/guards/roles.guard.js';
 import { StudentsModule } from './features/students/students.module.js';
 import { GroupsModule } from './features/groups/groups.module.js';
 import { AttendanceModule } from './features/attendance/attendance.module.js';
-import { PaymentsModule } from './payments/payments.module.js';
+import { PaymentsModule } from './features/payments/payments.module.js';
 import { DashboardModule } from './dashboard/dashboard.module.js';
 
 @Module({

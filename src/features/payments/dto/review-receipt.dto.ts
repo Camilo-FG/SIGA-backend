@@ -1,5 +1,5 @@
 import { IsEnum } from 'class-validator';
-import { ReceiptStatus } from '../../generated/prisma/client.js';
+import { ReceiptStatus } from '../../../generated/prisma/client.js';
 
 export class ReviewReceiptDto {
   @IsEnum(ReceiptStatus)

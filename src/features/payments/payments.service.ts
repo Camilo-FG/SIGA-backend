@@ -1,6 +1,6 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { ChargeStatus, ReceiptStatus } from '../generated/prisma/client.js';
-import { PrismaService } from '../prisma/prisma.service.js';
+import { ChargeStatus, ReceiptStatus } from '../../generated/prisma/client.js';
+import { PrismaService } from '../../prisma/prisma.service.js';
 import type { CreateChargeDto } from './dto/create-charge.dto.js';
 import type { CreatePaymentDto } from './dto/create-payment.dto.js';
 import type { ReviewReceiptDto } from './dto/review-receipt.dto.js';
