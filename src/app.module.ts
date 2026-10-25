@@ -8,7 +8,7 @@ import { JwtAuthGuard } from './auth/guards/jwt-auth.guard.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { UsersModule } from './users/users.module.js';
 import { RolesGuard } from './auth/guards/roles.guard.js';
-import { StudentsModule } from './students/students.module.js';
+import { StudentsModule } from './features/students/students.module.js';
 import { GroupsModule } from './groups/groups.module.js';
 import { AttendanceModule } from './attendance/attendance.module.js';
 import { PaymentsModule } from './payments/payments.module.js';

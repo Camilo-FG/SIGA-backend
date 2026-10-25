@@ -1,5 +1,5 @@
 import { IsDateString, IsEmail, IsEnum, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
-import { EnrollmentStatus } from '../../generated/prisma/client.js';
+import { EnrollmentStatus } from '../../../generated/prisma/client.js';
 
 export class CreateStudentDto {
   @IsString() @MinLength(2) @MaxLength(100)

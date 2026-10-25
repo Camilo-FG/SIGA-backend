@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
-import { Role } from '../generated/prisma/client.js';
-import { Roles } from '../auth/decorators/roles.decorator.js';
+import { Role } from '../../generated/prisma/client.js';
+import { Roles } from '../../auth/decorators/roles.decorator.js';
 import { CreateGuardianDto } from './dto/create-guardian.dto.js';
 import { CreateStudentDto } from './dto/create-student.dto.js';
 import { LinkGuardianDto } from './dto/link-guardian.dto.js';
