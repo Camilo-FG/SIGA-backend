@@ -1,9 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service.js';
-import type { CreateGuardianDto } from './dto/create-guardian.dto.js';
 import type { CreateStudentDto } from './dto/create-student.dto.js';
 import type { UpdateStudentDto } from './dto/update-student.dto.js';
-import type { UpdateGuardianDto } from './dto/update-guardian.dto.js';
 
 const studentInclude = {
   guardians: { include: { guardian: true } },
@@ -58,44 +56,6 @@ export class StudentsService {
     });
   }
 
-  createGuardian(dto: CreateGuardianDto) {
-    return this.prisma.guardian.create({ data: this.guardianData(dto) });
-  }
-
-  listGuardians() {
-    return this.prisma.guardian.findMany({ include: { students: { include: { student: true } } }, orderBy: [{ lastName: 'asc' }, { firstName: 'asc' }] });
-  }
-
-  async findGuardian(id: string) {
-    const guardian = await this.prisma.guardian.findUnique({ where: { id }, include: { students: { include: { student: true } } } });
-    if (!guardian) throw new NotFoundException('Guardian not found');
-    return guardian;
-  }
-
-  async updateGuardian(id: string, dto: UpdateGuardianDto) {
-    await this.findGuardian(id);
-    return this.prisma.guardian.update({ where: { id }, data: this.guardianData(dto), include: { students: { include: { student: true } } } });
-  }
-
-  async linkGuardian(studentId: string, guardianId: string, relationship: string) {
-    await this.findById(studentId);
-    const guardian = await this.prisma.guardian.findUnique({ where: { id: guardianId } });
-    if (!guardian) throw new NotFoundException('Guardian not found');
-    return this.prisma.studentGuardian.upsert({
-      where: { studentId_guardianId: { studentId, guardianId } },
-      create: { studentId, guardianId, relationship: relationship.trim() },
-      update: { relationship: relationship.trim() },
-      include: { guardian: true },
-    });
-  }
-
-  async unlinkGuardian(studentId: string, guardianId: string) {
-    await this.findById(studentId);
-    await this.findGuardian(guardianId);
-    await this.prisma.studentGuardian.delete({ where: { studentId_guardianId: { studentId, guardianId } } }).catch(() => { throw new NotFoundException('Guardian relationship not found'); });
-    return { success: true };
-  }
-
   private studentData(dto: CreateStudentDto) {
     return {
       firstName: dto.firstName.trim(),
@@ -109,7 +69,4 @@ export class StudentsService {
     };
   }
 
-  private guardianData(dto: CreateGuardianDto) {
-    return { firstName: dto.firstName.trim(), lastName: dto.lastName.trim(), email: dto.email?.trim().toLowerCase(), phone: dto.phone?.trim() };
-  }
 }

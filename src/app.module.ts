@@ -13,6 +13,7 @@ import { GroupsModule } from './features/groups/groups.module.js';
 import { AttendanceModule } from './features/attendance/attendance.module.js';
 import { PaymentsModule } from './features/payments/payments.module.js';
 import { DashboardModule } from './features/dashboard/dashboard.module.js';
+import { GuardiansModule } from './features/guardians/guardians.module.js';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { DashboardModule } from './features/dashboard/dashboard.module.js';
     AttendanceModule,
     PaymentsModule,
     DashboardModule,
+    GuardiansModule,
   ],
   controllers: [AppController],
   providers: [
