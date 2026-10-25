@@ -29,8 +29,8 @@ export class AuthController {
   @Roles(Role.DIRECTOR_GENERAL)
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
-  register(@Body() dto: RegisterDto): Promise<AuthResponse> {
-    return this.authService.register(dto);
+  register(@CurrentUser() user: PublicUser, @Body() dto: RegisterDto): Promise<PublicUser> {
+    return this.authService.register(dto, user);
   }
 
   @Public()

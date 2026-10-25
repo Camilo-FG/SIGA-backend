@@ -21,12 +21,12 @@ import { GuardiansModule } from './features/guardians/guardians.module.js';
     PrismaModule,
     UsersModule,
     AuthModule,
+    GuardiansModule,
     StudentsModule,
     GroupsModule,
     AttendanceModule,
     PaymentsModule,
     DashboardModule,
-    GuardiansModule,
   ],
   controllers: [AppController],
   providers: [

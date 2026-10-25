@@ -103,6 +103,8 @@ model GroupTeacher {
 model StudentGroup {
   studentId String
   groupId   String
+  startedAt DateTime @default(now())
+  endedAt   DateTime?
   student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
   group     Group   @relation(fields: [groupId], references: [id], onDelete: Cascade)
 

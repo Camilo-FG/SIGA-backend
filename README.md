@@ -46,32 +46,33 @@ The API is served at `http://localhost:3000/api` and the health check is `GET /a
 All routes are protected by the JWT guard unless marked public. Send the token as
 `Authorization: Bearer <accessToken>`.
 
-| Method | Route              | Public | Description                          |
-| ------ | ------------------ | ------ | ------------------------------------ |
-| GET    | `/api/health`      | yes    | Liveness probe.                      |
-| POST   | `/api/auth/register` | yes  | Create an account, returns a token.  |
-| POST   | `/api/auth/login`  | yes    | Exchange credentials for a token.    |
-| GET    | `/api/auth/me`     | no     | Current authenticated user.          |
+| Method | Route                | Who can call it                         | Description                                      |
+| ------ | -------------------- | --------------------------------------- | ------------------------------------------------ |
+| GET    | `/api/health`        | anyone                                  | Liveness probe.                                  |
+| POST   | `/api/auth/login`    | anyone                                  | Exchange credentials for a token.                |
+| GET    | `/api/auth/me`       | authenticated user                      | Current authenticated user.                      |
+| GET    | `/api/auth/users`    | direction and assistant                 | List internal accounts.                          |
+| POST   | `/api/auth/register` | general director only                   | Create an account. Does not return a token.     |
+
+Registration is not public. The general director chooses a role that does not outrank the director. If the role is omitted, the account is a `PROFESOR`. Roles are `DIRECTOR_GENERAL`, `DIRECTOR_ADMINISTRATIVO`, `ASISTENTE_DIRECCION`, `COREOGRAFO` and `PROFESOR`.
 
 Example:
 
 ```bash
 curl -X POST http://localhost:3000/api/auth/register \
+  -H "Authorization: Bearer <director-token>" \
   -H "Content-Type: application/json" \
-  -d '{"email":"jane@example.com","password":"supersecret","name":"Jane"}'
+  -d '{"email":"ana@example.com","password":"supersecret","name":"Ana","role":"PROFESOR"}'
 ```
 
 ```json
 {
-  "accessToken": "<jwt>",
-  "user": {
-    "id": "…",
-    "email": "jane@example.com",
-    "name": "Jane",
-    "role": "USER",
-    "createdAt": "…",
-    "updatedAt": "…"
-  }
+  "id": "…",
+  "email": "ana@example.com",
+  "name": "Ana",
+  "role": "PROFESOR",
+  "createdAt": "…",
+  "updatedAt": "…"
 }
 ```
 
@@ -82,7 +83,7 @@ prisma/
   schema.prisma          # Data model (User, Role)
   migrations/            # SQL migrations
 src/
-  auth/                  # Register/login, JWT strategy and guard, decorators
+  features/auth/         # Login, staff registration, JWT strategy and guards
   prisma/                # PrismaService (driver adapter) and global module
   users/                 # User queries, password hashing, DTOs
   generated/prisma/      # Prisma Client output (git-ignored, run prisma:generate)

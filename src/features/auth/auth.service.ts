@@ -14,9 +14,8 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async register(dto: RegisterDto): Promise<AuthResponse> {
-    const user = await this.usersService.create(dto);
-    return this.issueToken(user);
+  async register(dto: RegisterDto, actor: PublicUser): Promise<PublicUser> {
+    return this.usersService.create(dto, actor);
   }
 
   async login(dto: LoginDto): Promise<AuthResponse> {

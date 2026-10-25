@@ -6,11 +6,15 @@ import type { PublicUser } from '../../users/users.service.js';
 import { AttendanceService } from './attendance.service.js';
 import { RecordAttendanceDto } from './dto/record-attendance.dto.js';
 import { ListAttendanceQueryDto } from './dto/list-attendance-query.dto.js';
+import { RosterQueryDto } from './dto/roster-query.dto.js';
 
 @Controller('attendance')
 @Roles(Role.DIRECTOR_GENERAL, Role.DIRECTOR_ADMINISTRATIVO, Role.ASISTENTE_DIRECCION, Role.COREOGRAFO, Role.PROFESOR)
 export class AttendanceController {
   constructor(private readonly attendanceService: AttendanceService) {}
+
+  @Get('roster')
+  roster(@Query() query: RosterQueryDto, @CurrentUser() user: PublicUser) { return this.attendanceService.roster(query.groupId, query.date, user); }
 
   @Get()
   list(@Query() query: ListAttendanceQueryDto, @CurrentUser() user: PublicUser) { return this.attendanceService.list(query, user); }

@@ -1,6 +1,7 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { ChargeStatus, ReceiptStatus } from '../../generated/prisma/client.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
+import { displayChargeStatus, overdueChargeWhere, pendingChargeWhere } from './charge-status.js';
 import type { CreateChargeDto } from './dto/create-charge.dto.js';
 import type { CreatePaymentDto } from './dto/create-payment.dto.js';
 import type { ReviewReceiptDto } from './dto/review-receipt.dto.js';
@@ -9,8 +10,10 @@ import type { ReviewReceiptDto } from './dto/review-receipt.dto.js';
 export class PaymentsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  list(studentId?: string, status?: ChargeStatus) {
-    return this.prisma.charge.findMany({ where: { ...(studentId ? { studentId } : {}), ...(status ? { status } : {}) }, include: { student: true, payments: true }, orderBy: [{ status: 'asc' }, { dueDate: 'asc' }] });
+  async list(studentId?: string, status?: ChargeStatus) {
+    const statusFilter = status === ChargeStatus.VENCIDO ? overdueChargeWhere() : status === ChargeStatus.PENDIENTE ? pendingChargeWhere() : status ? { status } : {};
+    const charges = await this.prisma.charge.findMany({ where: { ...(studentId ? { studentId } : {}), ...statusFilter }, include: { student: true, payments: true }, orderBy: [{ status: 'asc' }, { dueDate: 'asc' }] });
+    return charges.map((charge) => ({ ...charge, status: displayChargeStatus(charge.status, charge.dueDate) }));
   }
 
   async createCharge(dto: CreateChargeDto) {
@@ -32,6 +35,7 @@ export class PaymentsService {
     });
   }
 
+  // Approving the receipt confirms that ADAGIO received the money and marks the charge paid.
   async reviewReceipt(paymentId: string, dto: ReviewReceiptDto) {
     const payment = await this.prisma.payment.findUnique({ where: { id: paymentId } });
     if (!payment) throw new NotFoundException('Payment not found');

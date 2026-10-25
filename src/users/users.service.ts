@@ -1,4 +1,4 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, ForbiddenException, Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import type { User } from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
@@ -6,6 +6,14 @@ import { CreateUserDto } from './dto/create-user.dto.js';
 import { Role } from '../generated/prisma/client.js';
 
 export const BCRYPT_ROUNDS = 10;
+
+const roleRank: Record<Role, number> = {
+  [Role.DIRECTOR_GENERAL]: 4,
+  [Role.DIRECTOR_ADMINISTRATIVO]: 3,
+  [Role.ASISTENTE_DIRECCION]: 2,
+  [Role.COREOGRAFO]: 1,
+  [Role.PROFESOR]: 1,
+};
 
 /** A user as exposed by the API: never includes the password hash. */
 export type PublicUser = Omit<User, 'password'>;
@@ -30,7 +38,10 @@ export class UsersService {
     return this.prisma.user.findUnique({ where: { id } });
   }
 
-  async create(dto: CreateUserDto): Promise<PublicUser> {
+  async create(dto: CreateUserDto, actor: PublicUser): Promise<PublicUser> {
+    const role = dto.role ?? Role.PROFESOR;
+    if (roleRank[role] > roleRank[actor.role]) throw new ForbiddenException('Role exceeds the operator');
+
     const email = dto.email.trim().toLowerCase();
     const existing = await this.prisma.user.findUnique({ where: { email } });
 
@@ -40,7 +51,7 @@ export class UsersService {
 
     const password = await bcrypt.hash(dto.password, BCRYPT_ROUNDS);
     const user = await this.prisma.user.create({
-      data: { email, password, name: dto.name.trim() },
+      data: { email, password, name: dto.name.trim(), role },
     });
 
     return UsersService.toPublic(user);

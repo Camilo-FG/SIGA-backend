@@ -6,12 +6,22 @@ import { CreatePaymentDto } from './dto/create-payment.dto.js';
 import { ReviewReceiptDto } from './dto/review-receipt.dto.js';
 import { PaymentsService } from './payments.service.js';
 
+const financeReaders = [Role.DIRECTOR_GENERAL, Role.DIRECTOR_ADMINISTRATIVO, Role.ASISTENTE_DIRECCION] as const;
+const financeManagers = [Role.DIRECTOR_GENERAL, Role.DIRECTOR_ADMINISTRATIVO] as const;
+
 @Controller('payments')
-@Roles(Role.DIRECTOR_GENERAL, Role.DIRECTOR_ADMINISTRATIVO, Role.ASISTENTE_DIRECCION)
 export class PaymentsController {
   constructor(private readonly paymentsService: PaymentsService) {}
-  @Get('charges') list(@Query('studentId') studentId?: string, @Query('status') status?: ChargeStatus) { return this.paymentsService.list(studentId, status); }
-  @Post('charges') createCharge(@Body() dto: CreateChargeDto) { return this.paymentsService.createCharge(dto); }
-  @Post() createPayment(@Body() dto: CreatePaymentDto) { return this.paymentsService.createPayment(dto); }
-  @Patch(':id/receipt') reviewReceipt(@Param('id') id: string, @Body() dto: ReviewReceiptDto) { return this.paymentsService.reviewReceipt(id, dto); }
+  @Get('charges')
+  @Roles(...financeReaders)
+  list(@Query('studentId') studentId?: string, @Query('status') status?: ChargeStatus) { return this.paymentsService.list(studentId, status); }
+  @Post('charges')
+  @Roles(...financeManagers)
+  createCharge(@Body() dto: CreateChargeDto) { return this.paymentsService.createCharge(dto); }
+  @Post()
+  @Roles(...financeManagers)
+  createPayment(@Body() dto: CreatePaymentDto) { return this.paymentsService.createPayment(dto); }
+  @Patch(':id/receipt')
+  @Roles(...financeManagers)
+  reviewReceipt(@Param('id') id: string, @Body() dto: ReviewReceiptDto) { return this.paymentsService.reviewReceipt(id, dto); }
 }
