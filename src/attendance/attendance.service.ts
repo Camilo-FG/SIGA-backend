@@ -3,6 +3,7 @@ import { Role } from '../generated/prisma/client.js';
 import type { PublicUser } from '../users/users.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import type { RecordAttendanceDto } from './dto/record-attendance.dto.js';
+import type { ListAttendanceQueryDto } from './dto/list-attendance-query.dto.js';
 
 @Injectable()
 export class AttendanceService {
@@ -26,7 +27,13 @@ export class AttendanceService {
     });
   }
 
-  list(groupId?: string) {
-    return this.prisma.attendanceSession.findMany({ where: groupId ? { groupId } : undefined, include: { records: { include: { student: true } }, group: true }, orderBy: { date: 'desc' } });
+  async list(query: ListAttendanceQueryDto, user: PublicUser) {
+    const isAdmin = user.role === Role.DIRECTOR_GENERAL || user.role === Role.DIRECTOR_ADMINISTRATIVO || user.role === Role.ASISTENTE_DIRECCION;
+    const date = query.from || query.to ? { ...(query.from ? { gte: new Date(query.from) } : {}), ...(query.to ? { lte: new Date(query.to) } : {}) } : undefined;
+    const sessions = await this.prisma.attendanceSession.findMany({ where: { ...(query.groupId ? { groupId: query.groupId } : {}), ...(date ? { date } : {}), ...(query.studentId ? { records: { some: { studentId: query.studentId } } } : {}), ...(!isAdmin ? { group: { teachers: { some: { userId: user.id } } } } : {}) }, include: { records: { include: { student: true } }, group: true }, orderBy: { date: 'desc' } });
+    const records = sessions.flatMap((session) => session.records);
+    const present = records.filter((record) => record.status === 'PRESENTE').length;
+    const late = records.filter((record) => record.status === 'TARDIA').length;
+    return { sessions, summary: { total: records.length, present, late, absent: records.length - present - late, attendanceRate: records.length ? Math.round((present / records.length) * 100) : 0 } };
   }
 }
