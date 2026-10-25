@@ -1,6 +1,6 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { Role } from '../generated/prisma/client.js';
-import { PrismaService } from '../prisma/prisma.service.js';
+import { Role } from '../../generated/prisma/client.js';
+import { PrismaService } from '../../prisma/prisma.service.js';
 import type { CreateDisciplineDto } from './dto/create-discipline.dto.js';
 import type { CreateGroupDto } from './dto/create-group.dto.js';
 import type { UpdateGroupDto } from './dto/update-group.dto.js';
