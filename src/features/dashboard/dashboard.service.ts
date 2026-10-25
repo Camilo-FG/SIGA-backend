@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { ChargeStatus, Role } from '../generated/prisma/client.js';
-import type { PublicUser } from '../users/users.service.js';
-import { PrismaService } from '../prisma/prisma.service.js';
+import { ChargeStatus, Role } from '../../generated/prisma/client.js';
+import type { PublicUser } from '../../users/users.service.js';
+import { PrismaService } from '../../prisma/prisma.service.js';
 
 @Injectable()
 export class DashboardService {

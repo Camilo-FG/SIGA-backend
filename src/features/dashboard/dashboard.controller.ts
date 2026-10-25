@@ -1,8 +1,8 @@
 import { Controller, Get } from '@nestjs/common';
-import { Role } from '../generated/prisma/client.js';
-import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
-import { Roles } from '../auth/decorators/roles.decorator.js';
-import type { PublicUser } from '../users/users.service.js';
+import { Role } from '../../generated/prisma/client.js';
+import { CurrentUser } from '../../auth/decorators/current-user.decorator.js';
+import { Roles } from '../../auth/decorators/roles.decorator.js';
+import type { PublicUser } from '../../users/users.service.js';
 import { DashboardService } from './dashboard.service.js';
 
 @Controller('dashboard')
