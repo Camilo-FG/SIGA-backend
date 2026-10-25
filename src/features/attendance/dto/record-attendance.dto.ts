@@ -1,6 +1,6 @@
 import { Type } from 'class-transformer';
 import { IsArray, IsEnum, IsString, MaxLength, ValidateNested } from 'class-validator';
-import { AttendanceStatus } from '../../generated/prisma/client.js';
+import { AttendanceStatus } from '../../../generated/prisma/client.js';
 
 export class AttendanceItemDto {
   @IsString() @MaxLength(36)

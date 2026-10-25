@@ -1,8 +1,8 @@
 import { Body, Controller, Get, Post, Query } from '@nestjs/common';
-import { Role } from '../generated/prisma/client.js';
-import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
-import { Roles } from '../auth/decorators/roles.decorator.js';
-import type { PublicUser } from '../users/users.service.js';
+import { Role } from '../../generated/prisma/client.js';
+import { CurrentUser } from '../../auth/decorators/current-user.decorator.js';
+import { Roles } from '../../auth/decorators/roles.decorator.js';
+import type { PublicUser } from '../../users/users.service.js';
 import { AttendanceService } from './attendance.service.js';
 import { RecordAttendanceDto } from './dto/record-attendance.dto.js';
 import { ListAttendanceQueryDto } from './dto/list-attendance-query.dto.js';

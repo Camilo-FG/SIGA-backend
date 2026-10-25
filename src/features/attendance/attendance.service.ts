@@ -1,7 +1,7 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { Role } from '../generated/prisma/client.js';
-import type { PublicUser } from '../users/users.service.js';
-import { PrismaService } from '../prisma/prisma.service.js';
+import { Role } from '../../generated/prisma/client.js';
+import type { PublicUser } from '../../users/users.service.js';
+import { PrismaService } from '../../prisma/prisma.service.js';
 import type { RecordAttendanceDto } from './dto/record-attendance.dto.js';
 import type { ListAttendanceQueryDto } from './dto/list-attendance-query.dto.js';
 
