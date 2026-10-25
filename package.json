@@ -25,6 +25,7 @@
     "prisma:deploy": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
     "prisma:seed:admin": "node scripts/seed-initial-admin.mjs",
+    "prisma:seed:demo": "node scripts/seed-demo-users.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:cov": "vitest run --coverage",
