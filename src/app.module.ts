@@ -7,6 +7,12 @@ import { AuthModule } from './auth/auth.module.js';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { UsersModule } from './users/users.module.js';
+import { RolesGuard } from './auth/guards/roles.guard.js';
+import { StudentsModule } from './students/students.module.js';
+import { GroupsModule } from './groups/groups.module.js';
+import { AttendanceModule } from './attendance/attendance.module.js';
+import { PaymentsModule } from './payments/payments.module.js';
+import { DashboardModule } from './dashboard/dashboard.module.js';
 
 @Module({
   imports: [
@@ -14,12 +20,18 @@ import { UsersModule } from './users/users.module.js';
     PrismaModule,
     UsersModule,
     AuthModule,
+    StudentsModule,
+    GroupsModule,
+    AttendanceModule,
+    PaymentsModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [
     AppService,
     // Every route requires a valid JWT unless it is marked with @Public().
     { provide: APP_GUARD, useClass: JwtAuthGuard },
+    { provide: APP_GUARD, useClass: RolesGuard },
   ],
 })
 export class AppModule {}

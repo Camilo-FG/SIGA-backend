@@ -13,12 +13,14 @@ import { Public } from './decorators/public.decorator.js';
 import { LoginDto } from './dto/login.dto.js';
 import { RegisterDto } from './dto/register.dto.js';
 import type { PublicUser } from '../users/users.service.js';
+import { Role } from '../generated/prisma/client.js';
+import { Roles } from './decorators/roles.decorator.js';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Public()
+  @Roles(Role.DIRECTOR_GENERAL)
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
   register(@Body() dto: RegisterDto): Promise<AuthResponse> {

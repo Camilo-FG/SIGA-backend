@@ -11,8 +11,36 @@ datasource db {
 }
 
 enum Role {
-  USER
-  ADMIN
+  DIRECTOR_GENERAL
+  DIRECTOR_ADMINISTRATIVO
+  ASISTENTE_DIRECCION
+  COREOGRAFO
+  PROFESOR
+}
+
+enum EnrollmentStatus {
+  ACTIVE
+  INACTIVE
+  PENDING
+}
+
+enum AttendanceStatus {
+  PRESENTE
+  AUSENTE
+  TARDIA
+}
+
+enum ChargeStatus {
+  PENDIENTE
+  PAGADO
+  VENCIDO
+  CANCELADO
+}
+
+enum ReceiptStatus {
+  PENDIENTE
+  APROBADO
+  RECHAZADO
 }
 
 model User {
@@ -20,9 +48,176 @@ model User {
   email     String   @unique
   password  String
   name      String
-  role      Role     @default(USER)
+  role      Role     @default(PROFESOR)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  teachingGroups GroupTeacher[]
+  attendanceSessions AttendanceSession[]
 
   @@map("users")
+}
+
+model Discipline {
+  id        String  @id @default(uuid())
+  name      String  @unique
+  active    Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  groups    Group[]
+
+  @@map("disciplines")
+}
+
+model Group {
+  id           String          @id @default(uuid())
+  name         String
+  disciplineId String
+  dayOfWeek    Int?
+  startTime    String?
+  endTime      String?
+  location     String?
+  active       Boolean         @default(true)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  discipline   Discipline      @relation(fields: [disciplineId], references: [id])
+  teachers     GroupTeacher[]
+  students     StudentGroup[]
+  attendance   AttendanceSession[]
+
+  @@unique([disciplineId, name])
+  @@index([disciplineId])
+  @@map("groups")
+}
+
+model GroupTeacher {
+  groupId   String
+  userId    String
+  group     Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user      User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([groupId, userId])
+  @@index([userId])
+  @@map("group_teachers")
+}
+
+model StudentGroup {
+  studentId String
+  groupId   String
+  student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  group     Group   @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@id([studentId, groupId])
+  @@index([groupId])
+  @@map("student_groups")
+}
+
+model AttendanceSession {
+  id        String             @id @default(uuid())
+  groupId   String
+  date      DateTime
+  createdById String
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+  group     Group              @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  createdBy User               @relation(fields: [createdById], references: [id])
+  records   AttendanceRecord[]
+
+  @@unique([groupId, date])
+  @@index([date])
+  @@map("attendance_sessions")
+}
+
+model AttendanceRecord {
+  sessionId String
+  studentId String
+  status    AttendanceStatus
+  session   AttendanceSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  student   Student           @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@id([sessionId, studentId])
+  @@index([studentId])
+  @@map("attendance_records")
+}
+
+model Student {
+  id                   String             @id @default(uuid())
+  firstName            String
+  lastName             String
+  birthDate            DateTime?
+  email                String?
+  phone                String?
+  enrollmentStatus     EnrollmentStatus   @default(PENDING)
+  emergencyContactName String?
+  emergencyContactPhone String?
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+  guardians            StudentGuardian[]
+  groups               StudentGroup[]
+  attendanceRecords    AttendanceRecord[]
+  charges              Charge[]
+
+  @@index([lastName, firstName])
+  @@index([enrollmentStatus])
+  @@map("students")
+}
+
+model Charge {
+  id          String        @id @default(uuid())
+  studentId   String
+  concept     String
+  amount      Decimal       @db.Decimal(10, 2)
+  period      String
+  dueDate     DateTime?
+  status      ChargeStatus  @default(PENDIENTE)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  student     Student      @relation(fields: [studentId], references: [id])
+  payments    Payment[]
+
+  @@unique([studentId, concept, period])
+  @@index([studentId, status])
+  @@index([period])
+  @@map("charges")
+}
+
+model Payment {
+  id          String        @id @default(uuid())
+  chargeId    String
+  amount      Decimal       @db.Decimal(10, 2)
+  receivedAt  DateTime      @default(now())
+  reference   String?
+  receiptUrl  String?
+  receiptStatus ReceiptStatus @default(PENDIENTE)
+  createdAt   DateTime      @default(now())
+  charge      Charge        @relation(fields: [chargeId], references: [id])
+
+  @@index([chargeId])
+  @@map("payments")
+}
+
+model Guardian {
+  id         String             @id @default(uuid())
+  firstName  String
+  lastName   String
+  email      String?
+  phone      String?
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+  students   StudentGuardian[]
+
+  @@index([lastName, firstName])
+  @@map("guardians")
+}
+
+model StudentGuardian {
+  studentId  String
+  guardianId String
+  relationship String
+  isPrimary  Boolean  @default(false)
+  student    Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  guardian   Guardian @relation(fields: [guardianId], references: [id], onDelete: Cascade)
+
+  @@id([studentId, guardianId])
+  @@index([guardianId])
+  @@map("student_guardians")
 }
