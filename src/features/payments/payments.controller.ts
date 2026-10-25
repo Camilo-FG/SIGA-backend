@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { ChargeStatus, Role } from '../../generated/prisma/client.js';
-import { Roles } from '../../auth/decorators/roles.decorator.js';
+import { Roles } from '../auth/decorators/roles.decorator.js';
 import { CreateChargeDto } from './dto/create-charge.dto.js';
 import { CreatePaymentDto } from './dto/create-payment.dto.js';
 import { ReviewReceiptDto } from './dto/review-receipt.dto.js';

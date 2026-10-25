@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
 import { Role } from '../../generated/prisma/client.js';
-import { Roles } from '../../auth/decorators/roles.decorator.js';
+import { Roles } from '../auth/decorators/roles.decorator.js';
 import { CreateDisciplineDto } from './dto/create-discipline.dto.js';
 import { CreateGroupDto } from './dto/create-group.dto.js';
 import { AssignStudentDto } from './dto/assign-student.dto.js';

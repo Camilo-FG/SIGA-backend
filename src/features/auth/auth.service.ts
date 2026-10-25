@@ -1,8 +1,8 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import type { PublicUser } from '../users/users.service.js';
-import { UsersService } from '../users/users.service.js';
+import type { PublicUser } from '../../users/users.service.js';
+import { UsersService } from '../../users/users.service.js';
 import type { AuthResponse, JwtPayload } from './auth.types.js';
 import type { LoginDto } from './dto/login.dto.js';
 import type { RegisterDto } from './dto/register.dto.js';

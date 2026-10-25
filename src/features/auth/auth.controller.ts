@@ -13,9 +13,9 @@ import { CurrentUser } from './decorators/current-user.decorator.js';
 import { Public } from './decorators/public.decorator.js';
 import { LoginDto } from './dto/login.dto.js';
 import { RegisterDto } from './dto/register.dto.js';
-import type { PublicUser } from '../users/users.service.js';
-import { Role } from '../generated/prisma/client.js';
-import { UsersService } from '../users/users.service.js';
+import type { PublicUser } from '../../users/users.service.js';
+import { Role } from '../../generated/prisma/client.js';
+import { UsersService } from '../../users/users.service.js';
 import { Roles } from './decorators/roles.decorator.js';
 
 @Controller('auth')

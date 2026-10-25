@@ -1,5 +1,5 @@
-import type { PublicUser } from '../users/users.service.js';
-import type { Role } from '../generated/prisma/client.js';
+import type { PublicUser } from '../../users/users.service.js';
+import type { Role } from '../../generated/prisma/client.js';
 
 export interface JwtPayload {
   /** User id. */

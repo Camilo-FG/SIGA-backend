@@ -1,5 +1,5 @@
 import { ForbiddenException } from '@nestjs/common';
-import { Role } from '../../generated/prisma/client.js';
+import { Role } from '../../../generated/prisma/client.js';
 import { RolesGuard } from './roles.guard.js';
 
 function contextFor(requiredRoles: string[] | undefined, user?: { role: Role }) {

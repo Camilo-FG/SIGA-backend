@@ -5,7 +5,7 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import type { PublicUser } from '../../users/users.service.js';
+import type { PublicUser } from '../../../users/users.service.js';
 import { ROLES_KEY } from '../decorators/roles.decorator.js';
 
 @Injectable()
