@@ -7,8 +7,8 @@ const chargeInput = { studentId: 'student-1', concept: 'Mensualidad', amount: 15
 describe('PaymentsService', () => {
   it('rejects a duplicate charge for the same student, concept and period', async () => {
     const prisma = {
-      student: { findUnique: async () => ({ id: 'student-1' }) },
-      charge: { create: async () => { throw new Error('Unique constraint failed'); } },
+      student: { findUnique: () => ({ id: 'student-1' }) },
+      charge: { create: () => { throw new Error('Unique constraint failed'); } },
     };
     const service = new PaymentsService(prisma as never);
 
@@ -16,7 +16,7 @@ describe('PaymentsService', () => {
   });
 
   it('marks the charge paid when the receipt is approved', async () => {
-    const chargeUpdate = vi.fn(async () => ({}));
+    const chargeUpdate = vi.fn(() => ({}));
     const service = serviceFor(ReceiptStatus.APROBADO, chargeUpdate);
 
     await service.reviewReceipt('payment-1', { status: ReceiptStatus.APROBADO });
@@ -25,7 +25,7 @@ describe('PaymentsService', () => {
   });
 
   it('leaves the charge pending when the receipt is rejected', async () => {
-    const chargeUpdate = vi.fn(async () => ({}));
+    const chargeUpdate = vi.fn(() => ({}));
     const service = serviceFor(ReceiptStatus.RECHAZADO, chargeUpdate);
 
     await service.reviewReceipt('payment-1', { status: ReceiptStatus.RECHAZADO });
@@ -37,7 +37,7 @@ describe('PaymentsService', () => {
     const update = vi.fn();
     const prisma = {
       charge: {
-        findMany: async () => [
+        findMany: () => [
           { id: 'past', status: ChargeStatus.PENDIENTE, dueDate: new Date('2020-01-01T00:00:00.000Z'), payments: [] },
           { id: 'future', status: ChargeStatus.PENDIENTE, dueDate: new Date('2999-01-01T00:00:00.000Z'), payments: [] },
         ],
@@ -55,12 +55,12 @@ describe('PaymentsService', () => {
 
 function serviceFor(receiptStatus: ReceiptStatus, chargeUpdate: ReturnType<typeof vi.fn>) {
   const tx = {
-    payment: { update: async () => ({ id: 'payment-1', chargeId: 'charge-1', receiptStatus }) },
+    payment: { update: () => ({ id: 'payment-1', chargeId: 'charge-1', receiptStatus }) },
     charge: { update: chargeUpdate },
   };
   const prisma = {
-    payment: { findUnique: async () => ({ id: 'payment-1', chargeId: 'charge-1' }) },
-    $transaction: async (work: (client: typeof tx) => Promise<unknown>) => work(tx),
+    payment: { findUnique: () => ({ id: 'payment-1', chargeId: 'charge-1' }) },
+    $transaction: (work: (client: typeof tx) => Promise<unknown>) => work(tx),
   };
   return new PaymentsService(prisma as never);
 }

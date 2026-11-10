@@ -4,9 +4,9 @@ import { GroupsService } from './groups.service.js';
 
 describe('GroupsService', () => {
   it('deactivates a group and keeps the row', async () => {
-    const update = vi.fn(async () => ({ id: 'group-1', active: false }));
+    const update = vi.fn(() => ({ id: 'group-1', active: false }));
     const service = new GroupsService({
-      group: { findUnique: async () => ({ id: 'group-1', active: true, discipline: { active: true } }), update },
+      group: { findUnique: () => ({ id: 'group-1', active: true, discipline: { active: true } }), update },
     } as never);
 
     await service.deactivateGroup('group-1');
@@ -17,8 +17,8 @@ describe('GroupsService', () => {
   it('rejects an inactive student', async () => {
     const create = vi.fn();
     const service = new GroupsService({
-      group: { findUnique: async () => ({ id: 'group-1', active: true, discipline: { active: true } }) },
-      student: { findUnique: async () => ({ id: 'student-1', enrollmentStatus: EnrollmentStatus.INACTIVE }) },
+      group: { findUnique: () => ({ id: 'group-1', active: true, discipline: { active: true } }) },
+      student: { findUnique: () => ({ id: 'student-1', enrollmentStatus: EnrollmentStatus.INACTIVE }) },
       studentGroup: { create },
     } as never);
 
@@ -29,7 +29,7 @@ describe('GroupsService', () => {
   it('rejects a group on an inactive discipline', async () => {
     const create = vi.fn();
     const service = new GroupsService({
-      discipline: { findUnique: async () => ({ id: 'discipline-1', active: false }) },
+      discipline: { findUnique: () => ({ id: 'discipline-1', active: false }) },
       group: { create },
     } as never);
 
@@ -40,7 +40,7 @@ describe('GroupsService', () => {
   it('rejects a schedule that ends before it starts', async () => {
     const create = vi.fn();
     const service = new GroupsService({
-      discipline: { findUnique: async () => ({ id: 'discipline-1', active: true }) },
+      discipline: { findUnique: () => ({ id: 'discipline-1', active: true }) },
       group: { create, findFirst: vi.fn() },
     } as never);
 
@@ -54,7 +54,7 @@ describe('GroupsService', () => {
       .mockResolvedValueOnce(null)
       .mockResolvedValueOnce({ id: 'other-group' });
     const service = new GroupsService({
-      discipline: { findUnique: async () => ({ id: 'discipline-1', active: true }) },
+      discipline: { findUnique: () => ({ id: 'discipline-1', active: true }) },
       group: { create, findFirst },
     } as never);
 
@@ -66,10 +66,10 @@ describe('GroupsService', () => {
     const upsert = vi.fn();
     const service = new GroupsService({
       group: {
-        findUnique: async () => ({ id: 'group-1', active: true, dayOfWeek: 1, startTime: '16:00', endTime: '17:00', discipline: { active: true } }),
-        findFirst: async () => ({ id: 'other-group' }),
+        findUnique: () => ({ id: 'group-1', active: true, dayOfWeek: 1, startTime: '16:00', endTime: '17:00', discipline: { active: true } }),
+        findFirst: () => ({ id: 'other-group' }),
       },
-      user: { findUnique: async () => ({ id: 'teacher-1', role: Role.PROFESOR }) },
+      user: { findUnique: () => ({ id: 'teacher-1', role: Role.PROFESOR }) },
       groupTeacher: { upsert },
     } as never);
 
@@ -78,11 +78,11 @@ describe('GroupsService', () => {
   });
 
   it('withdraws a student without deleting the enrollment', async () => {
-    const update = vi.fn(async () => ({ studentId: 'student-1' }));
+    const update = vi.fn(() => ({ studentId: 'student-1' }));
     const remove = vi.fn();
     const service = new GroupsService({
       studentGroup: {
-        findUnique: async () => ({ studentId: 'student-1', groupId: 'group-1', endedAt: null }),
+        findUnique: () => ({ studentId: 'student-1', groupId: 'group-1', endedAt: null }),
         update,
         delete: remove,
       },
@@ -90,7 +90,7 @@ describe('GroupsService', () => {
 
     await service.withdrawStudent('group-1', 'student-1');
 
-    expect(update).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ endedAt: expect.any(Date) }) }));
+    expect(update).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ endedAt: expect.any(Date) as Date }) as object }));
     expect(remove).not.toHaveBeenCalled();
   });
 });

@@ -11,7 +11,7 @@ describe('AttendanceService.record', () => {
   it('rejects a teacher who is not assigned to the group', async () => {
     const upsert = vi.fn();
     const prisma = {
-      group: { findUnique: async () => ({ id: 'group-1', teachers: [{ userId: 'other-teacher' }], students: [enrolled] }) },
+      group: { findUnique: () => ({ id: 'group-1', teachers: [{ userId: 'other-teacher' }], students: [enrolled] }) },
       attendanceSession: { upsert },
     };
     const service = new AttendanceService(prisma as never);
@@ -21,9 +21,9 @@ describe('AttendanceService.record', () => {
   });
 
   it('saves attendance when the teacher is assigned to the group', async () => {
-    const upsert = vi.fn(async () => ({ id: 'session-1' }));
+    const upsert = vi.fn(() => ({ id: 'session-1' }));
     const prisma = {
-      group: { findUnique: async () => ({ id: 'group-1', teachers: [{ userId: teacher.id }], students: [enrolled] }) },
+      group: { findUnique: () => ({ id: 'group-1', teachers: [{ userId: teacher.id }], students: [enrolled] }) },
       attendanceSession: { upsert },
     };
     const service = new AttendanceService(prisma as never);
@@ -35,7 +35,7 @@ describe('AttendanceService.record', () => {
   it('rejects a student whose enrollment does not cover the class date', async () => {
     const upsert = vi.fn();
     const prisma = {
-      group: { findUnique: async () => ({ id: 'group-1', teachers: [{ userId: teacher.id }], students: [{ studentId: 'student-1', startedAt: new Date('2020-01-01T00:00:00.000Z'), endedAt: new Date('2026-10-24T12:00:00.000Z') }] }) },
+      group: { findUnique: () => ({ id: 'group-1', teachers: [{ userId: teacher.id }], students: [{ studentId: 'student-1', startedAt: new Date('2020-01-01T00:00:00.000Z'), endedAt: new Date('2026-10-24T12:00:00.000Z') }] }) },
       attendanceSession: { upsert },
     };
     const service = new AttendanceService(prisma as never);
