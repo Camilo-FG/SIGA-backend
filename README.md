@@ -31,6 +31,18 @@ npm run start:dev
 
 The API is served at `http://localhost:3000/api` and the health check is `GET /api/health`.
 
+## Railway deployment
+
+- Build command: `npm run build` (generates Prisma Client before compiling).
+- Pre-deploy command: `npm run prisma:deploy` (applies database migrations).
+- Start command: `npm run start:prod` (runs the compiled API).
+- Configure `DATABASE_URL`, `JWT_SECRET` and `CORS_ORIGIN` in the service variables.
+- Keep development dependencies available during the build: Prisma CLI and Nest CLI are needed.
+
+The generated client is not committed to Git. The build generates it in
+`src/generated/prisma` using `prisma7.config.ts`; no database connection is needed
+for generation. Migrations run separately and require `DATABASE_URL`.
+
 ## Environment variables
 
 | Variable         | Description                                                    |
@@ -97,7 +109,7 @@ test/                    # Vitest e2e tests (need a database)
 | Script                   | Purpose                                     |
 | ------------------------ | ------------------------------------------- |
 | `npm run start:dev`      | Start in watch mode.                        |
-| `npm run build`          | Compile to `dist/`.                         |
+| `npm run build`          | Generate Prisma Client and compile to `dist/`. |
 | `npm run start:prod`     | Run the compiled build.                     |
 | `npm run lint`           | Run ESLint.                                 |
 | `npm run lint:fix`       | Run ESLint and apply fixes.                 |
