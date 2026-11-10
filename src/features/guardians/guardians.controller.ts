@@ -14,6 +14,6 @@ export class GuardiansController {
   @Get('guardians') list() { return this.guardiansService.list(); }
   @Get('guardians/:guardianId') find(@Param('guardianId') id: string) { return this.guardiansService.find(id); }
   @Patch('guardians/:guardianId') update(@Param('guardianId') id: string, @Body() dto: UpdateGuardianDto) { return this.guardiansService.update(id, dto); }
-  @Post(':id/guardians/:guardianId') link(@Param('id') studentId: string, @Param('guardianId') guardianId: string, @Body() dto: LinkGuardianDto) { return this.guardiansService.link(studentId, guardianId, dto.relationship); }
+  @Post(':id/guardians/:guardianId') link(@Param('id') studentId: string, @Param('guardianId') guardianId: string, @Body() dto: LinkGuardianDto) { return this.guardiansService.link(studentId, guardianId, dto.relationship, dto.isPaymentResponsible ?? false); }
   @Delete(':id/guardians/:guardianId') unlink(@Param('id') studentId: string, @Param('guardianId') guardianId: string) { return this.guardiansService.unlink(studentId, guardianId); }
 }

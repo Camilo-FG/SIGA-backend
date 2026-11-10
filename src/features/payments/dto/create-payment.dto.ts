@@ -1,10 +1,12 @@
-import { IsDateString, IsNumber, IsOptional, IsString, MaxLength, Min } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsDateString, IsEnum, IsNumber, IsOptional, IsString, MaxLength, Min } from 'class-validator';
+import { PaymentMethod } from '../../../generated/prisma/client.js';
 
 export class CreatePaymentDto {
   @IsString() @MaxLength(36)
   chargeId: string;
 
-  @IsNumber({ maxDecimalPlaces: 2 }) @Min(0.01)
+  @Type(() => Number) @IsNumber({ maxDecimalPlaces: 2 }) @Min(0.01)
   amount: number;
 
   @IsOptional() @IsDateString()
@@ -15,4 +17,7 @@ export class CreatePaymentDto {
 
   @IsOptional() @IsString() @MaxLength(500)
   receiptUrl?: string;
+
+  @IsOptional() @IsEnum(PaymentMethod)
+  method?: PaymentMethod;
 }

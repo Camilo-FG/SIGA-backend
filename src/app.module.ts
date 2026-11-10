@@ -14,11 +14,17 @@ import { AttendanceModule } from './features/attendance/attendance.module.js';
 import { PaymentsModule } from './features/payments/payments.module.js';
 import { DashboardModule } from './features/dashboard/dashboard.module.js';
 import { GuardiansModule } from './features/guardians/guardians.module.js';
+import { AuditModule } from './audit/audit.module.js';
+import { FilesModule } from './files/files.module.js';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, cache: true }),
+    ThrottlerModule.forRoot({ throttlers: [{ ttl: 60_000, limit: 5 }] }),
     PrismaModule,
+    AuditModule,
+    FilesModule,
     UsersModule,
     AuthModule,
     GuardiansModule,

@@ -10,4 +10,16 @@ import { DashboardService } from './dashboard.service.js';
 export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
   @Get('summary') summary(@CurrentUser() user: PublicUser) { return this.dashboardService.summary(user); }
+  @Get('students-by-discipline')
+  @Roles(Role.DIRECTOR_GENERAL, Role.DIRECTOR_ADMINISTRATIVO)
+  studentsByDiscipline() { return this.dashboardService.studentsByDiscipline(); }
+  @Get('attendance-trend')
+  @Roles(Role.DIRECTOR_GENERAL, Role.DIRECTOR_ADMINISTRATIVO)
+  attendanceTrend() { return this.dashboardService.attendanceTrend(); }
+  @Get('collection')
+  @Roles(Role.DIRECTOR_GENERAL, Role.DIRECTOR_ADMINISTRATIVO)
+  collection() { return this.dashboardService.collection(); }
+  @Get('upcoming')
+  @Roles(Role.DIRECTOR_GENERAL, Role.DIRECTOR_ADMINISTRATIVO, Role.ASISTENTE_DIRECCION)
+  upcoming() { return this.dashboardService.upcoming(); }
 }

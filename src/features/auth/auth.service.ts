@@ -23,7 +23,7 @@ export class AuthService {
     const passwordMatches =
       user !== null && (await bcrypt.compare(dto.password, user.password));
 
-    if (!user || !passwordMatches) {
+    if (!user || !user.active || !passwordMatches) {
       throw new UnauthorizedException('Invalid email or password');
     }
 

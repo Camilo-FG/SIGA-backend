@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsArray, IsEnum, IsString, MaxLength, ValidateNested } from 'class-validator';
+import { IsArray, IsEnum, IsOptional, IsString, MaxLength, ValidateNested } from 'class-validator';
 import { AttendanceStatus } from '../../../generated/prisma/client.js';
 
 export class AttendanceItemDto {
@@ -8,6 +8,9 @@ export class AttendanceItemDto {
 
   @IsEnum(AttendanceStatus)
   status: AttendanceStatus;
+
+  @IsOptional() @IsString() @MaxLength(300)
+  observation?: string;
 }
 
 export class RecordAttendanceDto {

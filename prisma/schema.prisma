@@ -28,6 +28,18 @@ enum AttendanceStatus {
   PRESENTE
   AUSENTE
   TARDIA
+  JUSTIFICADA
+}
+
+enum PaymentMethod {
+  SINPE
+  TRANSFERENCIA
+  EFECTIVO
+}
+
+enum PaymentPeriodicity {
+  MENSUAL
+  UNICO
 }
 
 enum ChargeStatus {
@@ -49,10 +61,14 @@ model User {
   password  String
   name      String
   role      Role     @default(PROFESOR)
+  active    Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   teachingGroups GroupTeacher[]
   attendanceSessions AttendanceSession[]
+  auditLogs AuditLog[]
+  paymentsRegistered Payment[] @relation("PaymentRegisteredBy")
+  paymentsValidated Payment[] @relation("PaymentValidatedBy")
 
   @@map("users")
 }
@@ -83,6 +99,7 @@ model Group {
   teachers     GroupTeacher[]
   students     StudentGroup[]
   attendance   AttendanceSession[]
+  schedules    GroupSchedule[]
 
   @@unique([disciplineId, name])
   @@index([disciplineId])
@@ -114,15 +131,17 @@ model StudentGroup {
 }
 
 model AttendanceSession {
-  id        String             @id @default(uuid())
-  groupId   String
-  date      DateTime
+  id          String             @id @default(uuid())
+  groupId     String
+  date        DateTime
   createdById String
-  createdAt DateTime           @default(now())
-  updatedAt DateTime           @updatedAt
-  group     Group              @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  createdBy User               @relation(fields: [createdById], references: [id])
-  records   AttendanceRecord[]
+  cancelled   Boolean            @default(false)
+  note        String?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  group       Group              @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  createdBy   User               @relation(fields: [createdById], references: [id])
+  records     AttendanceRecord[]
 
   @@unique([groupId, date])
   @@index([date])
@@ -130,15 +149,55 @@ model AttendanceSession {
 }
 
 model AttendanceRecord {
-  sessionId String
-  studentId String
-  status    AttendanceStatus
-  session   AttendanceSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  student   Student           @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  sessionId   String
+  studentId   String
+  status      AttendanceStatus
+  observation String?
+  session     AttendanceSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  student     Student           @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   @@id([sessionId, studentId])
   @@index([studentId])
   @@map("attendance_records")
+}
+
+model GroupSchedule {
+  id         String  @id @default(uuid())
+  groupId    String
+  dayOfWeek  Int
+  startTime  String
+  endTime    String
+  location   String?
+  group      Group   @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@index([groupId, dayOfWeek])
+  @@map("group_schedules")
+}
+
+model PaymentConcept {
+  id           String             @id @default(uuid())
+  name         String             @unique
+  amount       Decimal            @db.Decimal(10, 2)
+  periodicity  PaymentPeriodicity
+  active       Boolean            @default(true)
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  @@map("payment_concepts")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String
+  action    String
+  entity    String
+  entityId  String
+  detail    Json?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([entity, entityId])
+  @@map("audit_logs")
 }
 
 model Student {
@@ -151,6 +210,10 @@ model Student {
   enrollmentStatus     EnrollmentStatus   @default(PENDING)
   emergencyContactName String?
   emergencyContactPhone String?
+  nationalId           String?            @unique
+  notes                String?
+  photoPath            String?
+  enrolledAt           DateTime           @default(now()) @db.Date
   createdAt            DateTime           @default(now())
   updatedAt            DateTime           @updatedAt
   guardians            StudentGuardian[]
@@ -171,6 +234,7 @@ model Charge {
   period      String
   dueDate     DateTime?
   status      ChargeStatus  @default(PENDIENTE)
+  annulReason String?
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
   student     Student      @relation(fields: [studentId], references: [id])
@@ -190,8 +254,15 @@ model Payment {
   reference   String?
   receiptUrl  String?
   receiptStatus ReceiptStatus @default(PENDIENTE)
+  method      PaymentMethod @default(EFECTIVO)
+  rejectionReason String?
+  registeredById String?
+  validatedById String?
+  validatedAt DateTime?
   createdAt   DateTime      @default(now())
   charge      Charge        @relation(fields: [chargeId], references: [id])
+  registeredBy User?       @relation("PaymentRegisteredBy", fields: [registeredById], references: [id])
+  validatedBy User?        @relation("PaymentValidatedBy", fields: [validatedById], references: [id])
 
   @@index([chargeId])
   @@map("payments")
@@ -203,6 +274,7 @@ model Guardian {
   lastName   String
   email      String?
   phone      String?
+  nationalId String?            @unique
   createdAt  DateTime           @default(now())
   updatedAt  DateTime           @updatedAt
   students   StudentGuardian[]
@@ -216,6 +288,7 @@ model StudentGuardian {
   guardianId String
   relationship String
   isPrimary  Boolean  @default(false)
+  isPaymentResponsible Boolean @default(false)
   student    Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
   guardian   Guardian @relation(fields: [guardianId], references: [id], onDelete: Cascade)
 

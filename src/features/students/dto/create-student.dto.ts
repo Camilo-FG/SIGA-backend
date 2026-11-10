@@ -1,5 +1,17 @@
-import { IsDateString, IsEmail, IsEnum, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsArray, IsBoolean, IsDateString, IsEmail, IsEnum, IsOptional, IsString, MaxLength, MinLength, ValidateNested } from 'class-validator';
 import { EnrollmentStatus } from '../../../generated/prisma/client.js';
+
+export class StudentGuardianInput {
+  @IsString() @MaxLength(36)
+  guardianId: string;
+
+  @IsString() @MinLength(2) @MaxLength(80)
+  relationship: string;
+
+  @IsOptional() @IsBoolean()
+  isPaymentResponsible?: boolean;
+}
 
 export class CreateStudentDto {
   @IsString() @MinLength(2) @MaxLength(100)
@@ -25,4 +37,13 @@ export class CreateStudentDto {
 
   @IsOptional() @IsString() @MaxLength(30)
   emergencyContactPhone?: string;
+
+  @IsOptional() @IsString() @MaxLength(30)
+  nationalId?: string;
+
+  @IsOptional() @IsString() @MaxLength(1000)
+  notes?: string;
+
+  @IsOptional() @IsArray() @ValidateNested({ each: true }) @Type(() => StudentGuardianInput)
+  guardians?: StudentGuardianInput[];
 }

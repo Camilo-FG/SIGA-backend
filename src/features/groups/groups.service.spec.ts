@@ -93,4 +93,16 @@ describe('GroupsService', () => {
     expect(update).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ endedAt: expect.any(Date) as Date }) as object }));
     expect(remove).not.toHaveBeenCalled();
   });
+
+  it('removes an assigned teacher from the group', async () => {
+    const remove = vi.fn(() => ({ removed: true }));
+    const service = new GroupsService({
+      group: { findUnique: () => ({ id: 'group-1', active: true, discipline: { active: true } }) },
+      groupTeacher: { findUnique: () => ({ groupId: 'group-1', userId: 'teacher-1' }), delete: remove },
+    } as never);
+
+    await service.removeTeacher('group-1', 'teacher-1');
+
+    expect(remove).toHaveBeenCalledWith({ where: { groupId_userId: { groupId: 'group-1', userId: 'teacher-1' } } });
+  });
 });

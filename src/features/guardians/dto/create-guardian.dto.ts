@@ -9,4 +9,6 @@ export class CreateGuardianDto {
   email?: string;
   @IsOptional() @IsString() @MaxLength(30)
   phone?: string;
+  @IsOptional() @IsString() @MaxLength(30)
+  nationalId?: string;
 }

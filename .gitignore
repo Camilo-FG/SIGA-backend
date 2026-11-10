@@ -11,6 +11,9 @@ coverage
 # Prisma generated client
 /src/generated
 
+# Uploaded receipts and photos
+/uploads
+
 # Logs and OS noise
 *.log
 .DS_Store

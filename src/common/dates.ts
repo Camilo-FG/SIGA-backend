@@ -1,3 +1,18 @@
+export function costaRicaToday(now = new Date()) {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Costa_Rica' }).format(now);
+}
+
+export function costaRicaWeekday(now = new Date()) {
+  const weekday = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Costa_Rica', weekday: 'short' }).format(now);
+  return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].indexOf(weekday);
+}
+
+export function daysAfter(date: string, today = costaRicaToday()) {
+  const start = Date.parse(`${date.slice(0, 10)}T00:00:00Z`);
+  const end = Date.parse(`${today}T00:00:00Z`);
+  return Math.round((end - start) / 86_400_000);
+}
+
 export function startOfUtcDay(value = new Date()) {
   return new Date(Date.UTC(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate()));
 }

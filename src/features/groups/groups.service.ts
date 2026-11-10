@@ -88,6 +88,14 @@ export class GroupsService {
     });
   }
 
+  async removeTeacher(groupId: string, userId: string) {
+    await this.ensureGroup(groupId);
+    const link = await this.prisma.groupTeacher.findUnique({ where: { groupId_userId: { groupId, userId } } });
+    if (!link) throw new NotFoundException('El docente no está en este grupo');
+    await this.prisma.groupTeacher.delete({ where: { groupId_userId: { groupId, userId } } });
+    return { removed: true };
+  }
+
   async assignStudent(groupId: string, studentId: string) {
     const group = await this.ensureOperableGroup(groupId);
     const student = await this.prisma.student.findUnique({ where: { id: studentId } });
@@ -99,6 +107,52 @@ export class GroupsService {
     if (existing && !existing.endedAt) return this.prisma.studentGroup.findUnique({ where, include: { student: true } });
     if (existing) return this.prisma.studentGroup.update({ where, data: period, include: { student: true } });
     return this.prisma.studentGroup.create({ data: { studentId, groupId: group.id, ...period }, include: { student: true } });
+  }
+
+  async addSchedule(groupId: string, input: { dayOfWeek: number; startTime: string; endTime: string; location?: string }) {
+    const group = await this.ensureOperableGroup(groupId);
+    await this.ensureSlotFree({ ...input, location: input.location ?? null }, group.id);
+    const teachers = await this.prisma.groupTeacher.findMany({ where: { groupId: group.id }, select: { userId: true } });
+    for (const teacher of teachers) {
+      await this.ensureTeacherFree(teacher.userId, input, group.id);
+      const busy = await this.prisma.groupSchedule.findFirst({
+        where: { dayOfWeek: input.dayOfWeek, startTime: { lt: input.endTime }, endTime: { gt: input.startTime }, group: { active: true, id: { not: group.id }, teachers: { some: { userId: teacher.userId } } } },
+      });
+      if (busy) throw new ConflictException('Teacher has a conflicting schedule');
+    }
+    return this.prisma.groupSchedule.create({ data: { groupId: group.id, dayOfWeek: input.dayOfWeek, startTime: input.startTime, endTime: input.endTime, location: input.location?.trim() } });
+  }
+
+  async enrollMany(groupId: string, studentIds: string[]) {
+    const created = [];
+    for (const studentId of studentIds) created.push(await this.assignStudent(groupId, studentId));
+    return created;
+  }
+
+  async calendar(from: string, to: string, user: PublicUser, groupId?: string) {
+    const isStaff = user.role === Role.DIRECTOR_GENERAL || user.role === Role.DIRECTOR_ADMINISTRATIVO || user.role === Role.ASISTENTE_DIRECCION;
+    const groups = await this.prisma.group.findMany({
+      where: { active: true, ...(groupId ? { id: groupId } : {}), ...(isStaff ? {} : { teachers: { some: { userId: user.id } } }) },
+      include: { schedules: true, discipline: true },
+    });
+    const events = [];
+    for (const group of groups) {
+      const slots = group.schedules.length ? group.schedules : group.dayOfWeek == null ? [] : [{ dayOfWeek: group.dayOfWeek, startTime: group.startTime ?? '', endTime: group.endTime ?? '', location: group.location }];
+      for (let cursor = new Date(`${from}T00:00:00Z`); cursor <= new Date(`${to}T00:00:00Z`); cursor = new Date(cursor.getTime() + 86_400_000)) {
+        const day = cursor.getUTCDay();
+        for (const slot of slots) {
+          if (slot.dayOfWeek === day) events.push({ date: cursor.toISOString().slice(0, 10), groupId: group.id, group: group.name, discipline: group.discipline.name, ...slot });
+        }
+      }
+    }
+    return events;
+  }
+
+  async rosterCsv(groupId: string) {
+    const group = await this.prisma.group.findUnique({ where: { id: groupId }, include: { students: { where: { endedAt: null }, include: { student: true } } } });
+    if (!group) throw new NotFoundException('Group not found');
+    const lines = ['nombre,apellidos,estado', ...group.students.map((item) => `${item.student.firstName},${item.student.lastName},${item.student.enrollmentStatus}`)];
+    return lines.join('\n');
   }
 
   async withdrawStudent(groupId: string, studentId: string) {
@@ -142,6 +196,17 @@ export class GroupsService {
     if (!excludedId) return;
     const assigned = await this.prisma.groupTeacher.findMany({ where: { groupId: excludedId }, select: { userId: true } });
     for (const teacher of assigned) await this.ensureTeacherFree(teacher.userId, dto, excludedId);
+  }
+
+  private async ensureSlotFree(slot: Schedule, excludedGroupId: string) {
+    if (slot.dayOfWeek == null || !slot.startTime || !slot.endTime) return;
+    if (slot.startTime >= slot.endTime) throw new ConflictException('End time must be after start time');
+    const sameRoom = slot.location?.trim()
+      ? await this.prisma.groupSchedule.findFirst({
+        where: { groupId: { not: excludedGroupId }, dayOfWeek: slot.dayOfWeek, startTime: { lt: slot.endTime }, endTime: { gt: slot.startTime }, location: { equals: slot.location.trim(), mode: 'insensitive' }, group: { active: true } },
+      })
+      : null;
+    if (sameRoom) throw new ConflictException('Location has a conflicting schedule');
   }
 
   private async ensureTeacherFree(userId: string, schedule: Schedule, excludedGroupId: string) {
